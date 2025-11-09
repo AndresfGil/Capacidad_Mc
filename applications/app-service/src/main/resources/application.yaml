@@ -16,10 +16,9 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
     baseline-version: 0
-    url: jdbc:mysql://${adapters.r2dbc.host}:${adapters.r2dbc.port}/${adapters.r2dbc.database}
+    url: jdbc:mysql://${adapters.r2dbc.host}:${adapters.r2dbc.port}/${adapters.r2dbc.database}?createDatabaseIfNotExist=true
     user: ${adapters.r2dbc.username}
     password: ${adapters.r2dbc.password}
-    schemas: ${adapters.r2dbc.database}
 management:
   endpoints:
     web:
@@ -44,3 +43,6 @@ adapters:
     database: bootcamp-capacidad
     username: root
     password: andres98
+  restconsumer:
+    url: http://localhost:8080
+    timeout: 5000

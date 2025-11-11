@@ -1,8 +1,12 @@
 package co.com.capacidad.model.capacidad.gateways;
 
 import co.com.capacidad.model.capacidad.Capacidad;
+import co.com.capacidad.model.capacidad.CapacidadConTecnologias;
 import co.com.capacidad.model.capacidad.page.CustomPage;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 public interface CapacidadRepository {
 
@@ -14,5 +18,7 @@ public interface CapacidadRepository {
             String sortBy,
             String sortDirection
     );
+
+    Flux<Capacidad> obtenerCapacidadesPorIds(List<Long> ids);
 
 }

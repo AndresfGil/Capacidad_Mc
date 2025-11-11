@@ -1,5 +1,6 @@
 package co.com.capacidad.api.helpers;
 
+import co.com.capacidad.api.dto.CapacidadBatchResponseDto;
 import co.com.capacidad.api.dto.CapacidadListResponseDto;
 import co.com.capacidad.api.dto.CapacidadPageResponseDto;
 import co.com.capacidad.api.dto.CapacidadRequestDto;
@@ -47,6 +48,17 @@ public class CapacidadMapper {
 
     private CapacidadListResponseDto toListResponseDto(CapacidadConTecnologias capacidad) {
         return new CapacidadListResponseDto(
+                capacidad.getId(),
+                capacidad.getNombre(),
+                capacidad.getDescripcion(),
+                capacidad.getTecnologias().stream()
+                        .map(tecnologia -> new TecnologiaInfoDto(tecnologia.getId(), tecnologia.getNombre()))
+                        .collect(Collectors.toList())
+        );
+    }
+
+    public CapacidadBatchResponseDto toBatchResponseDto(CapacidadConTecnologias capacidad) {
+        return new CapacidadBatchResponseDto(
                 capacidad.getId(),
                 capacidad.getNombre(),
                 capacidad.getDescripcion(),

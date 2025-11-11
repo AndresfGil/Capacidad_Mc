@@ -14,14 +14,17 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -217,7 +220,7 @@ class CapacidadUseCaseTest {
                 .verify();
 
         verify(capacidadRepository).listarCapacidades(page, size, sortBy, sortDirection);
-        verify(capacidadEnrichmentService, never()).enriquecerCapacidadesConTecnologias(any());
+        verify(capacidadEnrichmentService, never()).enriquecerCapacidadesConTecnologias(any(CustomPage.class));
     }
 
     @Test
@@ -287,6 +290,109 @@ class CapacidadUseCaseTest {
 
         verify(capacidadRepository).listarCapacidades(page, size, sortBy, sortDirection);
         verify(capacidadEnrichmentService).enriquecerCapacidadesConTecnologias(pageVacia);
+    }
+
+    @Test
+    void obtenerCapacidadesPorIds_CuandoIdsValidos_DeberiaRetornarFluxEnriquecido() {
+        List<Long> ids = Arrays.asList(1L, 2L);
+        Capacidad capacidad2 = Capacidad.builder()
+                .id(2L)
+                .nombre("Desarrollo Frontend")
+                .descripcion("Desarrollo de interfaces de usuario")
+                .tecnologiasIds(Arrays.asList(3L, 4L))
+                .build();
+
+        CapacidadConTecnologias capacidadEnriquecida1 = CapacidadConTecnologias.builder()
+                .id(1L)
+                .nombre("Desarrollo Backend Java")
+                .descripcion("Creación de la lógica del servidor, APIs y microservicios con Java")
+                .tecnologias(Collections.emptyList())
+                .build();
+
+        CapacidadConTecnologias capacidadEnriquecida2 = CapacidadConTecnologias.builder()
+                .id(2L)
+                .nombre("Desarrollo Frontend")
+                .descripcion("Desarrollo de interfaces de usuario")
+                .tecnologias(Collections.emptyList())
+                .build();
+
+        when(capacidadRepository.obtenerCapacidadesPorIds(ids))
+                .thenReturn(Flux.just(capacidadGuardada, capacidad2));
+        when(capacidadEnrichmentService.enriquecerCapacidadesConTecnologias(any(Flux.class)))
+                .thenReturn(Flux.just(capacidadEnriquecida1, capacidadEnriquecida2));
+
+        StepVerifier.create(capacidadUseCase.obtenerCapacidadesPorIds(ids))
+                .expectNext(capacidadEnriquecida1)
+                .expectNext(capacidadEnriquecida2)
+                .verifyComplete();
+
+        verify(capacidadRepository).obtenerCapacidadesPorIds(ids);
+    }
+
+    @Test
+    void obtenerCapacidadesPorIds_CuandoListaVacia_DeberiaRetornarFluxVacio() {
+        List<Long> ids = Collections.emptyList();
+
+        when(capacidadRepository.obtenerCapacidadesPorIds(ids)).thenReturn(Flux.empty());
+        when(capacidadEnrichmentService.enriquecerCapacidadesConTecnologias(any(Flux.class)))
+                .thenReturn(Flux.empty());
+
+        StepVerifier.create(capacidadUseCase.obtenerCapacidadesPorIds(ids))
+                .verifyComplete();
+
+        verify(capacidadRepository).obtenerCapacidadesPorIds(ids);
+    }
+
+    @Test
+    void obtenerCapacidadesPorIds_CuandoUnSoloId_DeberiaRetornarUnaCapacidadEnriquecida() {
+        List<Long> ids = Collections.singletonList(1L);
+        CapacidadConTecnologias capacidadEnriquecida = CapacidadConTecnologias.builder()
+                .id(1L)
+                .nombre("Desarrollo Backend Java")
+                .descripcion("Creación de la lógica del servidor, APIs y microservicios con Java")
+                .tecnologias(Collections.emptyList())
+                .build();
+
+        when(capacidadRepository.obtenerCapacidadesPorIds(ids))
+                .thenReturn(Flux.just(capacidadGuardada));
+        when(capacidadEnrichmentService.enriquecerCapacidadesConTecnologias(any(Flux.class)))
+                .thenReturn(Flux.just(capacidadEnriquecida));
+
+        StepVerifier.create(capacidadUseCase.obtenerCapacidadesPorIds(ids))
+                .expectNext(capacidadEnriquecida)
+                .verifyComplete();
+
+        verify(capacidadRepository).obtenerCapacidadesPorIds(ids);
+    }
+
+
+    @Test
+    void obtenerCapacidadesPorIds_CuandoEnrichmentServiceRetornaError_DeberiaPropagarError() {
+        List<Long> ids = Arrays.asList(1L, 2L);
+        RuntimeException error = new RuntimeException("Error al enriquecer");
+
+        when(capacidadRepository.obtenerCapacidadesPorIds(ids))
+                .thenReturn(Flux.just(capacidadGuardada));
+        when(capacidadEnrichmentService.enriquecerCapacidadesConTecnologias(any(Flux.class)))
+                .thenReturn(Flux.error(error));
+
+        StepVerifier.create(capacidadUseCase.obtenerCapacidadesPorIds(ids))
+                .expectError(RuntimeException.class)
+                .verify();
+
+        verify(capacidadRepository).obtenerCapacidadesPorIds(ids);
+    }
+
+    @Test
+    void obtenerCapacidadesPorIds_CuandoListaNula_DeberiaManejarNull() {
+        when(capacidadRepository.obtenerCapacidadesPorIds(null)).thenReturn(Flux.empty());
+        when(capacidadEnrichmentService.enriquecerCapacidadesConTecnologias(any(Flux.class)))
+                .thenReturn(Flux.empty());
+
+        StepVerifier.create(capacidadUseCase.obtenerCapacidadesPorIds(null))
+                .verifyComplete();
+
+        verify(capacidadRepository).obtenerCapacidadesPorIds(null);
     }
 }
 

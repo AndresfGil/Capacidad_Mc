@@ -1,6 +1,8 @@
 package co.com.capacidad.api.docs;
 
 import co.com.capacidad.api.CapacidadHandler;
+import co.com.capacidad.api.dto.CapacidadBatchRequestDto;
+import co.com.capacidad.api.dto.CapacidadBatchResponseDto;
 import co.com.capacidad.api.dto.CapacidadPageResponseDto;
 import co.com.capacidad.api.dto.CapacidadRequestDto;
 import co.com.capacidad.api.dto.CapacidadResponseDto;
@@ -97,6 +99,37 @@ public interface CapacidadControllerDocs {
                                     @ApiResponse(
                                             responseCode = "400",
                                             description = "Error de validación en los parámetros"
+                                    ),
+                                    @ApiResponse(
+                                            responseCode = "500",
+                                            description = "Error interno del servidor"
+                                    )
+                            }
+                    )
+            ),
+            @RouterOperation(
+                    path = "/api/capacidad/batch",
+                    produces = MediaType.APPLICATION_JSON_VALUE,
+                    method = RequestMethod.POST,
+                    beanClass = CapacidadHandler.class,
+                    beanMethod = "listenObtenerCapacidadesPorIds",
+                    operation = @Operation(
+                            operationId = "obtenerCapacidadesPorIds",
+                            summary = "Obtener capacidades por IDs (Batch)",
+                            description = "Consulta múltiples capacidades por sus IDs de forma no bloqueante. Retorna cada capacidad con su id, nombre, descripción y lista de tecnologías asociadas (con id y nombre).",
+                            requestBody = @RequestBody(
+                                    required = true,
+                                    content = @Content(schema = @Schema(implementation = CapacidadBatchRequestDto.class))
+                            ),
+                            responses = {
+                                    @ApiResponse(
+                                            responseCode = "200",
+                                            description = "Lista de capacidades obtenida exitosamente",
+                                            content = @Content(schema = @Schema(implementation = CapacidadBatchResponseDto.class))
+                                    ),
+                                    @ApiResponse(
+                                            responseCode = "400",
+                                            description = "Error de validación en los datos enviados"
                                     ),
                                     @ApiResponse(
                                             responseCode = "500",

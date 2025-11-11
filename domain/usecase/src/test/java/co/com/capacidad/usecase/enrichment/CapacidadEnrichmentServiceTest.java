@@ -321,5 +321,124 @@ class CapacidadEnrichmentServiceTest {
                 })
                 .verifyComplete();
     }
+
+    @Test
+    void enriquecerCapacidadesConTecnologias_CuandoFluxVacio_DeberiaRetornarFluxVacio() {
+        StepVerifier.create(capacidadEnrichmentService.enriquecerCapacidadesConTecnologias(Flux.empty()))
+                .verifyComplete();
+    }
+
+    @Test
+    void enriquecerCapacidadesConTecnologias_CuandoFluxConUnaCapacidad_DeberiaEnriquecerCorrectamente() {
+        when(tecnologiaGateway.obtenerTecnologiasPorIds(anyList()))
+                .thenReturn(Flux.just(tecnologia1, tecnologia2));
+
+        StepVerifier.create(capacidadEnrichmentService.enriquecerCapacidadesConTecnologias(Flux.just(capacidad1)))
+                .assertNext(capacidadEnriquecida -> {
+                    assertThat(capacidadEnriquecida.getId()).isEqualTo(1L);
+                    assertThat(capacidadEnriquecida.getNombre()).isEqualTo("Desarrollo Backend Java");
+                    assertThat(capacidadEnriquecida.getTecnologias()).hasSize(2);
+                    assertThat(capacidadEnriquecida.getTecnologias().get(0).getId()).isEqualTo(1L);
+                    assertThat(capacidadEnriquecida.getTecnologias().get(1).getId()).isEqualTo(2L);
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void enriquecerCapacidadesConTecnologias_CuandoFluxConMultiplesCapacidades_DeberiaEnriquecerTodas() {
+        when(tecnologiaGateway.obtenerTecnologiasPorIds(anyList()))
+                .thenReturn(Flux.just(tecnologia1, tecnologia2, tecnologia3));
+
+        StepVerifier.create(capacidadEnrichmentService.enriquecerCapacidadesConTecnologias(Flux.just(capacidad1, capacidad2)))
+                .assertNext(capacidad1Enriquecida -> {
+                    assertThat(capacidad1Enriquecida.getId()).isEqualTo(1L);
+                    assertThat(capacidad1Enriquecida.getTecnologias()).hasSize(2);
+                })
+                .assertNext(capacidad2Enriquecida -> {
+                    assertThat(capacidad2Enriquecida.getId()).isEqualTo(2L);
+                    assertThat(capacidad2Enriquecida.getTecnologias()).hasSize(2);
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void enriquecerCapacidadesConTecnologias_CuandoFluxConCapacidadSinTecnologias_DeberiaRetornarListaVacia() {
+        Capacidad capacidadSinTecnologias = Capacidad.builder()
+                .id(3L)
+                .nombre("Capacidad sin tecnologías")
+                .descripcion("Descripción")
+                .tecnologiasIds(Collections.emptyList())
+                .build();
+
+        when(tecnologiaGateway.obtenerTecnologiasPorIds(anyList()))
+                .thenReturn(Flux.empty());
+
+        StepVerifier.create(capacidadEnrichmentService.enriquecerCapacidadesConTecnologias(Flux.just(capacidadSinTecnologias)))
+                .assertNext(capacidadEnriquecida -> {
+                    assertThat(capacidadEnriquecida.getId()).isEqualTo(3L);
+                    assertThat(capacidadEnriquecida.getTecnologias()).isEmpty();
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void enriquecerCapacidadesConTecnologias_CuandoFluxConCapacidadConTecnologiasNull_DeberiaRetornarListaVacia() {
+        Capacidad capacidadConTecnologiasNull = Capacidad.builder()
+                .id(4L)
+                .nombre("Capacidad con tecnologías null")
+                .descripcion("Descripción")
+                .tecnologiasIds(null)
+                .build();
+
+        when(tecnologiaGateway.obtenerTecnologiasPorIds(anyList()))
+                .thenReturn(Flux.empty());
+
+        StepVerifier.create(capacidadEnrichmentService.enriquecerCapacidadesConTecnologias(Flux.just(capacidadConTecnologiasNull)))
+                .assertNext(capacidadEnriquecida -> {
+                    assertThat(capacidadEnriquecida.getId()).isEqualTo(4L);
+                    assertThat(capacidadEnriquecida.getTecnologias()).isEmpty();
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void enriquecerCapacidadesConTecnologias_CuandoFluxGatewayFalla_DeberiaPropagarError() {
+        RuntimeException error = new RuntimeException("Error de conexión");
+
+        when(tecnologiaGateway.obtenerTecnologiasPorIds(anyList()))
+                .thenReturn(Flux.error(error));
+
+        StepVerifier.create(capacidadEnrichmentService.enriquecerCapacidadesConTecnologias(Flux.just(capacidad1)))
+                .expectError(RuntimeException.class)
+                .verify();
+    }
+
+    @Test
+    void enriquecerCapacidadesConTecnologias_CuandoFluxConCapacidadesCompartenTecnologias_DeberiaExtraerIdsUnicos() {
+        when(tecnologiaGateway.obtenerTecnologiasPorIds(anyList()))
+                .thenReturn(Flux.just(tecnologia1, tecnologia2, tecnologia3));
+
+        StepVerifier.create(capacidadEnrichmentService.enriquecerCapacidadesConTecnologias(Flux.just(capacidad1, capacidad2)))
+                .assertNext(capacidad1Enriquecida -> {
+                    assertThat(capacidad1Enriquecida.getTecnologias()).hasSize(2);
+                })
+                .assertNext(capacidad2Enriquecida -> {
+                    assertThat(capacidad2Enriquecida.getTecnologias()).hasSize(2);
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void enriquecerCapacidadesConTecnologias_CuandoFluxConAlgunaTecnologiaNoExiste_DeberiaFiltrarNulls() {
+        when(tecnologiaGateway.obtenerTecnologiasPorIds(anyList()))
+                .thenReturn(Flux.just(tecnologia1));
+
+        StepVerifier.create(capacidadEnrichmentService.enriquecerCapacidadesConTecnologias(Flux.just(capacidad1)))
+                .assertNext(capacidadEnriquecida -> {
+                    assertThat(capacidadEnriquecida.getTecnologias()).hasSize(1);
+                    assertThat(capacidadEnriquecida.getTecnologias().get(0).getId()).isEqualTo(1L);
+                })
+                .verifyComplete();
+    }
 }
 

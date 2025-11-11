@@ -6,6 +6,7 @@ import co.com.capacidad.model.capacidad.gateways.TecnologiaGateway;
 import co.com.capacidad.model.capacidad.gateways.TecnologiaInfo;
 import co.com.capacidad.model.capacidad.page.CustomPage;
 import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
@@ -86,6 +87,21 @@ public class CapacidadEnrichmentService {
                 .descripcion(capacidad.getDescripcion())
                 .tecnologias(tecnologias)
                 .build();
+    }
+
+    public Flux<CapacidadConTecnologias> enriquecerCapacidadesConTecnologias(Flux<Capacidad> capacidadesFlux) {
+        return capacidadesFlux
+                .collectList()
+                .flatMapMany(capacidades -> {
+                    if (capacidades.isEmpty()) {
+                        return Flux.empty();
+                    }
+                    List<Long> allTecnologiasIds = extractAllTecnologiasIds(capacidades);
+                    return tecnologiaGateway.obtenerTecnologiasPorIds(allTecnologiasIds)
+                            .collectMap(TecnologiaInfo::getId, tecnologia -> tecnologia)
+                            .flatMapMany(tecnologiasMap -> Flux.fromIterable(capacidades)
+                                    .map(capacidad -> buildCapacidadConTecnologias(capacidad, tecnologiasMap)));
+                });
     }
 }
 

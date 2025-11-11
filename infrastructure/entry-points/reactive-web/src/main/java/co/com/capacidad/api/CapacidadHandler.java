@@ -1,5 +1,6 @@
 package co.com.capacidad.api;
 
+import co.com.capacidad.api.dto.CapacidadBatchRequestDto;
 import co.com.capacidad.api.dto.CapacidadListRequestDto;
 import co.com.capacidad.api.dto.CapacidadRequestDto;
 import co.com.capacidad.api.helpers.CapacidadMapper;
@@ -59,5 +60,17 @@ public class CapacidadHandler {
                                 .status(HttpStatus.OK)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .bodyValue(response)));
+    }
+
+    public Mono<ServerResponse> listenObtenerCapacidadesPorIds(ServerRequest req) {
+        return req.bodyToMono(CapacidadBatchRequestDto.class)
+                .flatMap(dto -> dtoValidator.validate(dto)
+                        .flatMapMany(dtoValidado -> capacidadUseCase.obtenerCapacidadesPorIds(dtoValidado.ids()))
+                        .map(capacidadMapper::toBatchResponseDto)
+                        .collectList()
+                        .flatMap(responseList -> ServerResponse
+                                .status(HttpStatus.OK)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(responseList)));
     }
 }

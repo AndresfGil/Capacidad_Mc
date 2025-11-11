@@ -17,6 +17,7 @@ public class RouterRest implements CapacidadControllerDocs {
     @Override
     public RouterFunction<ServerResponse> routerFunction(CapacidadHandler handler) {
         return route(POST("/api/capacidad"), handler::listenGuardarCapacidad)
-                .andRoute(GET("/api/capacidad"), handler::listenListarCapacidades);
+                .andRoute(GET("/api/capacidad"), handler::listenListarCapacidades)
+                .andRoute(POST("/api/capacidad/batch"), handler::listenObtenerCapacidadesPorIds);
     }
 }

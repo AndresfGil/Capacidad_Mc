@@ -8,7 +8,10 @@ import co.com.capacidad.model.capacidad.validator.CapacidadValidator;
 import co.com.capacidad.usecase.enrichment.CapacidadEnrichmentService;
 import co.com.capacidad.usecase.validator.TecnologiaValidatorService;
 import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 public class CapacidadUseCase {
@@ -32,5 +35,10 @@ public class CapacidadUseCase {
     ) {
         return capacidadRepository.listarCapacidades(page, size, sortBy, sortDirection)
                 .flatMap(capacidadEnrichmentService::enriquecerCapacidadesConTecnologias);
+    }
+
+    public Flux<CapacidadConTecnologias> obtenerCapacidadesPorIds(List<Long> ids) {
+        return capacidadRepository.obtenerCapacidadesPorIds(ids)
+                .transform(capacidadEnrichmentService::enriquecerCapacidadesConTecnologias);
     }
 }

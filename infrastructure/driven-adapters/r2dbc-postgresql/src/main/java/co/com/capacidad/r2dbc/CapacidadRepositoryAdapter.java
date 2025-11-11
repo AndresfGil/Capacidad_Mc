@@ -9,6 +9,7 @@ import co.com.capacidad.r2dbc.helper.ReactiveAdapterOperations;
 import org.reactivecommons.utils.ObjectMapper;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -94,6 +95,12 @@ public class CapacidadRepositoryAdapter extends ReactiveAdapterOperations<
                             .sort(sort)
                             .build();
                 });
+    }
+
+    @Override
+    public Flux<Capacidad> obtenerCapacidadesPorIds(List<Long> ids) {
+        return repository.findByIdIn(ids)
+                .map(entityMapper::toDomain);
     }
 
     private String buildOrderByClause(String sortBy, String sortDirection) {

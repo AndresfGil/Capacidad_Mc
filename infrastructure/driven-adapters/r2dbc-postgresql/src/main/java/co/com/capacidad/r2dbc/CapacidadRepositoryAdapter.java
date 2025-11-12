@@ -54,12 +54,12 @@ public class CapacidadRepositoryAdapter extends ReactiveAdapterOperations<
         String orderBy = buildOrderByClause(sortBy, sortDirection);
         int offset = page * size;
 
-        Mono<Long> countMono = databaseClient.sql("SELECT COUNT(*) FROM capacidades")
+        Mono<Long> countMono = databaseClient.sql("SELECT COUNT(*) FROM capacidades WHERE activa = true")
                 .map(row -> row.get(0, Long.class))
                 .one();
 
         Mono<List<CapacidadEntity>> dataMono = databaseClient.sql(
-                "SELECT * FROM capacidades ORDER BY " + orderBy + " LIMIT :limit OFFSET :offset"
+                "SELECT * FROM capacidades WHERE activa = true ORDER BY " + orderBy + " LIMIT :limit OFFSET :offset"
         )
                 .bind("limit", size)
                 .bind("offset", offset)
@@ -69,6 +69,7 @@ public class CapacidadRepositoryAdapter extends ReactiveAdapterOperations<
                     entity.setNombre(row.get("nombre", String.class));
                     entity.setDescripcion(row.get("descripcion", String.class));
                     entity.setTecnologiasIds(row.get("tecnologias_ids", String.class));
+                    entity.setActiva(row.get("activa", Boolean.class));
                     return entity;
                 })
                 .all()
@@ -100,7 +101,34 @@ public class CapacidadRepositoryAdapter extends ReactiveAdapterOperations<
     @Override
     public Flux<Capacidad> obtenerCapacidadesPorIds(List<Long> ids) {
         return repository.findByIdIn(ids)
+                .filter(entity -> Boolean.TRUE.equals(entity.getActiva()))
                 .map(entityMapper::toDomain);
+    }
+
+    @Override
+    public Mono<Void> activarCapacidades(List<Long> ids) {
+        return repository.findByIdIn(ids)
+                .map(entity -> entity.toBuilder().activa(true).build())
+                .collectList()
+                .flatMap(entities -> repository.saveAll(entities).then());
+    }
+
+    @Override
+    public Mono<Void> desactivarCapacidades(List<Long> ids) {
+        return repository.findByIdIn(ids)
+                .map(entity -> entity.toBuilder().activa(false).build())
+                .collectList()
+                .flatMap(entities -> repository.saveAll(entities).then());
+    }
+
+    @Override
+    public Mono<Void> eliminarInactivasAntiguas(java.time.LocalDateTime fechaLimite) {
+        return repository.findAll()
+                .filter(entity -> Boolean.FALSE.equals(entity.getActiva()))
+                .filter(entity -> entity.getFechaModificacion() != null && 
+                                 entity.getFechaModificacion().isBefore(fechaLimite))
+                .flatMap(entity -> repository.deleteById(entity.getId()))
+                .then();
     }
 
     private String buildOrderByClause(String sortBy, String sortDirection) {

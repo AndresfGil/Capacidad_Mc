@@ -6,6 +6,7 @@ import co.com.capacidad.model.capacidad.page.CustomPage;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface CapacidadRepository {
@@ -20,5 +21,11 @@ public interface CapacidadRepository {
     );
 
     Flux<Capacidad> obtenerCapacidadesPorIds(List<Long> ids);
+    
+    Mono<Void> activarCapacidades(List<Long> ids);
+    
+    Mono<Void> desactivarCapacidades(List<Long> ids);
+    
+    Mono<Void> eliminarInactivasAntiguas(LocalDateTime fechaLimite);
 
 }

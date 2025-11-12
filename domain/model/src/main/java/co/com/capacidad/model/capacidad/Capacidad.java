@@ -16,5 +16,5 @@ public class Capacidad {
     private String nombre;
     private String descripcion;
     private List<Long> tecnologiasIds;
-
+    private Boolean activa;
 }

@@ -11,7 +11,6 @@ import co.com.capacidad.model.capacidad.CapacidadConTecnologias;
 import co.com.capacidad.model.capacidad.page.CustomPage;
 import org.springframework.stereotype.Component;
 
-import java.util.stream.Collectors;
 
 @Component
 public class CapacidadMapper {
@@ -21,6 +20,7 @@ public class CapacidadMapper {
                 .nombre(dto.nombre())
                 .descripcion(dto.descripcion())
                 .tecnologiasIds(dto.tecnologiasIds())
+                .activa(true)
                 .build();
     }
 
@@ -37,7 +37,7 @@ public class CapacidadMapper {
         return new CapacidadPageResponseDto(
                 page.getData().stream()
                         .map(this::toListResponseDto)
-                        .collect(Collectors.toList()),
+                        .toList(),
                 page.getTotalRows(),
                 page.getPageSize(),
                 page.getPageNum(),
@@ -53,7 +53,7 @@ public class CapacidadMapper {
                 capacidad.getDescripcion(),
                 capacidad.getTecnologias().stream()
                         .map(tecnologia -> new TecnologiaInfoDto(tecnologia.getId(), tecnologia.getNombre()))
-                        .collect(Collectors.toList())
+                        .toList()
         );
     }
 
@@ -64,7 +64,7 @@ public class CapacidadMapper {
                 capacidad.getDescripcion(),
                 capacidad.getTecnologias().stream()
                         .map(tecnologia -> new TecnologiaInfoDto(tecnologia.getId(), tecnologia.getNombre()))
-                        .collect(Collectors.toList())
+                        .toList()
         );
     }
 }

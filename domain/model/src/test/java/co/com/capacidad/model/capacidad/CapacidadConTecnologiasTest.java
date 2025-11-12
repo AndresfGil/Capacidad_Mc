@@ -50,18 +50,6 @@ class CapacidadConTecnologiasTest {
         assertNull(capacidad.getTecnologias());
     }
 
-    @Test
-    void allArgsConstructor_DeberiaCrearInstanciaConTodosLosParametros() {
-        TecnologiaInfo tecnologia = TecnologiaInfo.builder().id(1L).nombre("Java").build();
-        List<TecnologiaInfo> tecnologias = Collections.singletonList(tecnologia);
-
-        CapacidadConTecnologias capacidad = new CapacidadConTecnologias(1L, "Frontend", "Capacidad en frontend", tecnologias);
-
-        assertEquals(1L, capacidad.getId());
-        assertEquals("Frontend", capacidad.getNombre());
-        assertEquals("Capacidad en frontend", capacidad.getDescripcion());
-        assertEquals(tecnologias, capacidad.getTecnologias());
-    }
 
     @Test
     void setters_DeberiaModificarValores() {

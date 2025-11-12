@@ -85,6 +85,7 @@ public class CapacidadEnrichmentService {
                 .id(capacidad.getId())
                 .nombre(capacidad.getNombre())
                 .descripcion(capacidad.getDescripcion())
+                .activa(capacidad.getActiva())
                 .tecnologias(tecnologias)
                 .build();
     }

@@ -8,7 +8,6 @@ import reactor.core.publisher.Mono;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 public class TecnologiaValidatorService {
@@ -29,7 +28,7 @@ public class TecnologiaValidatorService {
                     Set<Long> idsEncontradosSet = new HashSet<>(idsEncontrados);
                     List<Long> idsNoEncontrados = idsSolicitados.stream()
                             .filter(id -> !idsEncontradosSet.contains(id))
-                            .collect(Collectors.toList());
+                            .toList();
 
                     if (!idsNoEncontrados.isEmpty()) {
                         return Mono.error(new TecnologiaNoEncontradaException(idsNoEncontrados));

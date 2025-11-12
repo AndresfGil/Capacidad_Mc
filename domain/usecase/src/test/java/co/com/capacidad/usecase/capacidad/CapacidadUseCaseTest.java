@@ -54,6 +54,7 @@ class CapacidadUseCaseTest {
                 .nombre("Desarrollo Backend Java")
                 .descripcion("Creación de la lógica del servidor, APIs y microservicios con Java")
                 .tecnologiasIds(Arrays.asList(1L, 2L))
+                .activa(true)
                 .build();
 
         capacidadGuardada = Capacidad.builder()
@@ -61,6 +62,7 @@ class CapacidadUseCaseTest {
                 .nombre("Desarrollo Backend Java")
                 .descripcion("Creación de la lógica del servidor, APIs y microservicios con Java")
                 .tecnologiasIds(Arrays.asList(1L, 2L))
+                .activa(true)
                 .build();
     }
 
@@ -181,6 +183,15 @@ class CapacidadUseCaseTest {
                 .sort("nombre ASC")
                 .build();
 
+        CustomPage<Capacidad> pageFiltrada = CustomPage.<Capacidad>builder()
+                .data(Arrays.asList(capacidad))
+                .totalRows(1L)
+                .pageSize(size)
+                .pageNum(page)
+                .hasNext(false)
+                .sort("nombre ASC")
+                .build();
+
         CustomPage<CapacidadConTecnologias> pageEnriquecida = CustomPage.<CapacidadConTecnologias>builder()
                 .data(Collections.emptyList())
                 .totalRows(1L)
@@ -192,7 +203,7 @@ class CapacidadUseCaseTest {
 
         when(capacidadRepository.listarCapacidades(page, size, sortBy, sortDirection))
                 .thenReturn(Mono.just(pageCapacidades));
-        when(capacidadEnrichmentService.enriquecerCapacidadesConTecnologias(pageCapacidades))
+        when(capacidadEnrichmentService.enriquecerCapacidadesConTecnologias(any(CustomPage.class)))
                 .thenReturn(Mono.just(pageEnriquecida));
 
         StepVerifier.create(capacidadUseCase.listarCapacidades(page, size, sortBy, sortDirection))
@@ -200,7 +211,60 @@ class CapacidadUseCaseTest {
                 .verifyComplete();
 
         verify(capacidadRepository).listarCapacidades(page, size, sortBy, sortDirection);
-        verify(capacidadEnrichmentService).enriquecerCapacidadesConTecnologias(pageCapacidades);
+        verify(capacidadEnrichmentService).enriquecerCapacidadesConTecnologias(any(CustomPage.class));
+    }
+
+    @Test
+    void listarCapacidades_CuandoHayCapacidadesInactivas_DeberiaFiltrarlas() {
+        Integer page = 0;
+        Integer size = 10;
+        String sortBy = "nombre";
+        String sortDirection = "ASC";
+
+        Capacidad capacidadInactiva = Capacidad.builder()
+                .id(2L)
+                .nombre("Capacidad Inactiva")
+                .activa(false)
+                .build();
+
+        CustomPage<Capacidad> pageCapacidades = CustomPage.<Capacidad>builder()
+                .data(Arrays.asList(capacidad, capacidadInactiva))
+                .totalRows(2L)
+                .pageSize(size)
+                .pageNum(page)
+                .hasNext(false)
+                .sort("nombre ASC")
+                .build();
+
+        CustomPage<Capacidad> pageFiltrada = CustomPage.<Capacidad>builder()
+                .data(Arrays.asList(capacidad))
+                .totalRows(2L)
+                .pageSize(size)
+                .pageNum(page)
+                .hasNext(false)
+                .sort("nombre ASC")
+                .build();
+
+        CustomPage<CapacidadConTecnologias> pageEnriquecida = CustomPage.<CapacidadConTecnologias>builder()
+                .data(Collections.emptyList())
+                .totalRows(2L)
+                .pageSize(size)
+                .pageNum(page)
+                .hasNext(false)
+                .sort("nombre ASC")
+                .build();
+
+        when(capacidadRepository.listarCapacidades(page, size, sortBy, sortDirection))
+                .thenReturn(Mono.just(pageCapacidades));
+        when(capacidadEnrichmentService.enriquecerCapacidadesConTecnologias(any(CustomPage.class)))
+                .thenReturn(Mono.just(pageEnriquecida));
+
+        StepVerifier.create(capacidadUseCase.listarCapacidades(page, size, sortBy, sortDirection))
+                .expectNext(pageEnriquecida)
+                .verifyComplete();
+
+        verify(capacidadRepository).listarCapacidades(page, size, sortBy, sortDirection);
+        verify(capacidadEnrichmentService).enriquecerCapacidadesConTecnologias(any(CustomPage.class));
     }
 
     @Test
@@ -300,6 +364,7 @@ class CapacidadUseCaseTest {
                 .nombre("Desarrollo Frontend")
                 .descripcion("Desarrollo de interfaces de usuario")
                 .tecnologiasIds(Arrays.asList(3L, 4L))
+                .activa(true)
                 .build();
 
         CapacidadConTecnologias capacidadEnriquecida1 = CapacidadConTecnologias.builder()
@@ -324,6 +389,36 @@ class CapacidadUseCaseTest {
         StepVerifier.create(capacidadUseCase.obtenerCapacidadesPorIds(ids))
                 .expectNext(capacidadEnriquecida1)
                 .expectNext(capacidadEnriquecida2)
+                .verifyComplete();
+
+        verify(capacidadRepository).obtenerCapacidadesPorIds(ids);
+    }
+
+    @Test
+    void obtenerCapacidadesPorIds_CuandoHayCapacidadesInactivas_DeberiaFiltrarlas() {
+        List<Long> ids = Arrays.asList(1L, 2L);
+        Capacidad capacidadInactiva = Capacidad.builder()
+                .id(2L)
+                .nombre("Desarrollo Frontend")
+                .descripcion("Desarrollo de interfaces de usuario")
+                .tecnologiasIds(Arrays.asList(3L, 4L))
+                .activa(false)
+                .build();
+
+        CapacidadConTecnologias capacidadEnriquecida1 = CapacidadConTecnologias.builder()
+                .id(1L)
+                .nombre("Desarrollo Backend Java")
+                .descripcion("Creación de la lógica del servidor, APIs y microservicios con Java")
+                .tecnologias(Collections.emptyList())
+                .build();
+
+        when(capacidadRepository.obtenerCapacidadesPorIds(ids))
+                .thenReturn(Flux.just(capacidadGuardada, capacidadInactiva));
+        when(capacidadEnrichmentService.enriquecerCapacidadesConTecnologias(any(Flux.class)))
+                .thenReturn(Flux.just(capacidadEnriquecida1));
+
+        StepVerifier.create(capacidadUseCase.obtenerCapacidadesPorIds(ids))
+                .expectNext(capacidadEnriquecida1)
                 .verifyComplete();
 
         verify(capacidadRepository).obtenerCapacidadesPorIds(ids);
@@ -393,6 +488,82 @@ class CapacidadUseCaseTest {
                 .verifyComplete();
 
         verify(capacidadRepository).obtenerCapacidadesPorIds(null);
+    }
+
+    @Test
+    void activarCapacidades_CuandoIdsValidos_DeberiaActivarExitosamente() {
+        List<Long> ids = Arrays.asList(1L, 2L, 3L);
+
+        when(capacidadRepository.activarCapacidades(ids)).thenReturn(Mono.empty());
+
+        StepVerifier.create(capacidadUseCase.activarCapacidades(ids))
+                .verifyComplete();
+
+        verify(capacidadRepository).activarCapacidades(ids);
+    }
+
+    @Test
+    void activarCapacidades_CuandoListaVacia_DeberiaCompletarSinError() {
+        List<Long> ids = Collections.emptyList();
+
+        when(capacidadRepository.activarCapacidades(ids)).thenReturn(Mono.empty());
+
+        StepVerifier.create(capacidadUseCase.activarCapacidades(ids))
+                .verifyComplete();
+
+        verify(capacidadRepository).activarCapacidades(ids);
+    }
+
+    @Test
+    void activarCapacidades_CuandoRepositoryFalla_DeberiaPropagarError() {
+        List<Long> ids = Arrays.asList(1L, 2L);
+        RuntimeException error = new RuntimeException("Error de base de datos");
+
+        when(capacidadRepository.activarCapacidades(ids)).thenReturn(Mono.error(error));
+
+        StepVerifier.create(capacidadUseCase.activarCapacidades(ids))
+                .expectError(RuntimeException.class)
+                .verify();
+
+        verify(capacidadRepository).activarCapacidades(ids);
+    }
+
+    @Test
+    void desactivarCapacidades_CuandoIdsValidos_DeberiaDesactivarExitosamente() {
+        List<Long> ids = Arrays.asList(1L, 2L, 3L);
+
+        when(capacidadRepository.desactivarCapacidades(ids)).thenReturn(Mono.empty());
+
+        StepVerifier.create(capacidadUseCase.desactivarCapacidades(ids))
+                .verifyComplete();
+
+        verify(capacidadRepository).desactivarCapacidades(ids);
+    }
+
+    @Test
+    void desactivarCapacidades_CuandoListaVacia_DeberiaCompletarSinError() {
+        List<Long> ids = Collections.emptyList();
+
+        when(capacidadRepository.desactivarCapacidades(ids)).thenReturn(Mono.empty());
+
+        StepVerifier.create(capacidadUseCase.desactivarCapacidades(ids))
+                .verifyComplete();
+
+        verify(capacidadRepository).desactivarCapacidades(ids);
+    }
+
+    @Test
+    void desactivarCapacidades_CuandoRepositoryFalla_DeberiaPropagarError() {
+        List<Long> ids = Arrays.asList(1L, 2L);
+        RuntimeException error = new RuntimeException("Error de base de datos");
+
+        when(capacidadRepository.desactivarCapacidades(ids)).thenReturn(Mono.error(error));
+
+        StepVerifier.create(capacidadUseCase.desactivarCapacidades(ids))
+                .expectError(RuntimeException.class)
+                .verify();
+
+        verify(capacidadRepository).desactivarCapacidades(ids);
     }
 }
 

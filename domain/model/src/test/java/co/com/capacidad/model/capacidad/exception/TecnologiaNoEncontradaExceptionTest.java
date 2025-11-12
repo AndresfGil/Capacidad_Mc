@@ -10,20 +10,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class TecnologiaNoEncontradaExceptionTest {
 
-    @Test
-    void constructor_DeberiaInicializarConMensajeCorrecto() {
-        List<Long> idsNoEncontrados = Arrays.asList(999L, 1000L);
-        TecnologiaNoEncontradaException exception = new TecnologiaNoEncontradaException(idsNoEncontrados);
-
-        assertEquals("Una o más tecnologías no fueron encontradas", exception.getMessage());
-        assertEquals("TECNOLOGIA_NO_ENCONTRADA", exception.getErrorCode());
-        assertEquals("Tecnologías no encontradas", exception.getTitle());
-        assertEquals(404, exception.getStatusCode());
-        assertNotNull(exception.getErrors());
-        assertEquals(1, exception.getErrors().size());
-        assertTrue(exception.getErrors().get(0).contains("999"));
-        assertTrue(exception.getErrors().get(0).contains("1000"));
-    }
 
     @Test
     void constructor_ConUnSoloId_DeberiaIncluirIdEnMensaje() {

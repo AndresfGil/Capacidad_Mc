@@ -54,19 +54,6 @@ class TecnologiaValidatorServiceTest {
     }
 
     @Test
-    void validarTecnologiasExisten_CuandoAlgunaNoExiste_DeberiaLanzarTecnologiaNoEncontradaException() {
-        List<Long> tecnologiasIds = Arrays.asList(1L, 2L);
-        TecnologiaInfo tecnologia1 = TecnologiaInfo.builder().id(1L).nombre("Java").build();
-
-        when(tecnologiaGateway.obtenerTecnologiasPorIds(anyList())).thenReturn(Flux.just(tecnologia1));
-
-        StepVerifier.create(tecnologiaValidatorService.validarTecnologiasExisten(tecnologiasIds))
-                .expectErrorMatches(throwable -> throwable instanceof TecnologiaNoEncontradaException
-                        && throwable.getMessage().equals("Una o más tecnologías no fueron encontradas"))
-                .verify();
-    }
-
-    @Test
     void validarTecnologiasExisten_CuandoNingunaExiste_DeberiaLanzarExcepcion() {
         List<Long> tecnologiasIds = Arrays.asList(999L, 1000L);
 

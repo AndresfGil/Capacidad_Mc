@@ -18,12 +18,14 @@ class CapacidadTest {
                 .nombre("Desarrollo Backend")
                 .descripcion("Capacidad en desarrollo backend")
                 .tecnologiasIds(tecnologiasIds)
+                .activa(true)
                 .build();
 
         assertEquals(1L, capacidad.getId());
         assertEquals("Desarrollo Backend", capacidad.getNombre());
         assertEquals("Capacidad en desarrollo backend", capacidad.getDescripcion());
         assertEquals(tecnologiasIds, capacidad.getTecnologiasIds());
+        assertTrue(capacidad.getActiva());
     }
 
     @Test
@@ -34,6 +36,7 @@ class CapacidadTest {
         assertNull(capacidad.getNombre());
         assertNull(capacidad.getDescripcion());
         assertNull(capacidad.getTecnologiasIds());
+        assertNull(capacidad.getActiva());
     }
 
     @Test
@@ -44,17 +47,19 @@ class CapacidadTest {
         assertNull(capacidad.getNombre());
         assertNull(capacidad.getDescripcion());
         assertNull(capacidad.getTecnologiasIds());
+        assertNull(capacidad.getActiva());
     }
 
     @Test
     void allArgsConstructor_DeberiaCrearInstanciaConTodosLosParametros() {
         List<Long> tecnologiasIds = Arrays.asList(1L, 2L, 3L);
-        Capacidad capacidad = new Capacidad(1L, "Frontend", "Capacidad en frontend", tecnologiasIds);
+        Capacidad capacidad = new Capacidad(1L, "Frontend", "Capacidad en frontend", tecnologiasIds, true);
 
         assertEquals(1L, capacidad.getId());
         assertEquals("Frontend", capacidad.getNombre());
         assertEquals("Capacidad en frontend", capacidad.getDescripcion());
         assertEquals(tecnologiasIds, capacidad.getTecnologiasIds());
+        assertTrue(capacidad.getActiva());
     }
 
     @Test
@@ -85,11 +90,13 @@ class CapacidadTest {
         capacidad.setNombre("DevOps");
         capacidad.setDescripcion("Capacidad en DevOps");
         capacidad.setTecnologiasIds(tecnologiasIds);
+        capacidad.setActiva(false);
 
         assertEquals(2L, capacidad.getId());
         assertEquals("DevOps", capacidad.getNombre());
         assertEquals("Capacidad en DevOps", capacidad.getDescripcion());
         assertEquals(tecnologiasIds, capacidad.getTecnologiasIds());
+        assertFalse(capacidad.getActiva());
     }
 
     @Test
@@ -98,10 +105,12 @@ class CapacidadTest {
                 .id(1L)
                 .nombre("Test")
                 .tecnologiasIds(Collections.emptyList())
+                .activa(true)
                 .build();
 
         assertNotNull(capacidad.getTecnologiasIds());
         assertTrue(capacidad.getTecnologiasIds().isEmpty());
+        assertTrue(capacidad.getActiva());
     }
 }
 

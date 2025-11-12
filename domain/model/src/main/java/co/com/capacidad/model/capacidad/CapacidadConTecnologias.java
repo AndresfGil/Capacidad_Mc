@@ -18,6 +18,7 @@ public class CapacidadConTecnologias {
     private Long id;
     private String nombre;
     private String descripcion;
+    private Boolean activa;
     private List<TecnologiaInfo> tecnologias;
 }
 

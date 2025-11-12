@@ -137,6 +137,66 @@ public interface CapacidadControllerDocs {
                                     )
                             }
                     )
+            ),
+            @RouterOperation(
+                    path = "/api/capacidad/activar",
+                    produces = MediaType.APPLICATION_JSON_VALUE,
+                    method = RequestMethod.PATCH,
+                    beanClass = CapacidadHandler.class,
+                    beanMethod = "listenActivarCapacidades",
+                    operation = @Operation(
+                            operationId = "activarCapacidades",
+                            summary = "Activar capacidades (Batch)",
+                            description = "Activa múltiples capacidades por sus IDs. El campo 'activa' se establecerá en 'true' para todas las capacidades especificadas.",
+                            requestBody = @RequestBody(
+                                    required = true,
+                                    content = @Content(schema = @Schema(implementation = CapacidadBatchRequestDto.class))
+                            ),
+                            responses = {
+                                    @ApiResponse(
+                                            responseCode = "204",
+                                            description = "Capacidades activadas exitosamente"
+                                    ),
+                                    @ApiResponse(
+                                            responseCode = "400",
+                                            description = "Error de validación en los datos enviados"
+                                    ),
+                                    @ApiResponse(
+                                            responseCode = "500",
+                                            description = "Error interno del servidor"
+                                    )
+                            }
+                    )
+            ),
+            @RouterOperation(
+                    path = "/api/capacidad/desactivar",
+                    produces = MediaType.APPLICATION_JSON_VALUE,
+                    method = RequestMethod.PATCH,
+                    beanClass = CapacidadHandler.class,
+                    beanMethod = "listenDesactivarCapacidades",
+                    operation = @Operation(
+                            operationId = "desactivarCapacidades",
+                            summary = "Desactivar capacidades (Batch)",
+                            description = "Desactiva múltiples capacidades por sus IDs. El campo 'activa' se establecerá en 'false' para todas las capacidades especificadas.",
+                            requestBody = @RequestBody(
+                                    required = true,
+                                    content = @Content(schema = @Schema(implementation = CapacidadBatchRequestDto.class))
+                            ),
+                            responses = {
+                                    @ApiResponse(
+                                            responseCode = "204",
+                                            description = "Capacidades desactivadas exitosamente"
+                                    ),
+                                    @ApiResponse(
+                                            responseCode = "400",
+                                            description = "Error de validación en los datos enviados"
+                                    ),
+                                    @ApiResponse(
+                                            responseCode = "500",
+                                            description = "Error interno del servidor"
+                                    )
+                            }
+                    )
             )
     })
     public RouterFunction<ServerResponse> routerFunction(CapacidadHandler handler);

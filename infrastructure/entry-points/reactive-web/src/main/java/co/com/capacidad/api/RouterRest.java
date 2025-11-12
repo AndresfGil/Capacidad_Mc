@@ -7,6 +7,7 @@ import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
 import static org.springframework.web.reactive.function.server.RequestPredicates.GET;
+import static org.springframework.web.reactive.function.server.RequestPredicates.PATCH;
 import static org.springframework.web.reactive.function.server.RequestPredicates.POST;
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 
@@ -18,6 +19,8 @@ public class RouterRest implements CapacidadControllerDocs {
     public RouterFunction<ServerResponse> routerFunction(CapacidadHandler handler) {
         return route(POST("/api/capacidad"), handler::listenGuardarCapacidad)
                 .andRoute(GET("/api/capacidad"), handler::listenListarCapacidades)
-                .andRoute(POST("/api/capacidad/batch"), handler::listenObtenerCapacidadesPorIds);
+                .andRoute(POST("/api/capacidad/batch"), handler::listenObtenerCapacidadesPorIds)
+                .andRoute(PATCH("/api/capacidad/activar"), handler::listenActivarCapacidades)
+                .andRoute(PATCH("/api/capacidad/desactivar"), handler::listenDesactivarCapacidades);
     }
 }

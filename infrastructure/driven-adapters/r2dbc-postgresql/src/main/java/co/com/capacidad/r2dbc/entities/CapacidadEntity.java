@@ -5,6 +5,8 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
+import java.time.LocalDateTime;
+
 @Table("capacidades")
 @AllArgsConstructor
 @NoArgsConstructor
@@ -22,4 +24,8 @@ public class CapacidadEntity {
     @Column("tecnologias_ids")
     private String tecnologiasIds;
 
+    private Boolean activa;
+
+    @Column("fecha_modificacion")
+    private LocalDateTime fechaModificacion;
 }

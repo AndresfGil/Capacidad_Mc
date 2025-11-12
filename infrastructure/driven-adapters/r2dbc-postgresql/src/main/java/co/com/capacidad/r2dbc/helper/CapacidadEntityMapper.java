@@ -26,6 +26,7 @@ public class CapacidadEntityMapper {
         entity.setId(capacidad.getId());
         entity.setNombre(capacidad.getNombre());
         entity.setDescripcion(capacidad.getDescripcion());
+        entity.setActiva(capacidad.getActiva());
 
 
         try {
@@ -49,6 +50,7 @@ public class CapacidadEntityMapper {
         capacidad.setId(entity.getId());
         capacidad.setNombre(entity.getNombre());
         capacidad.setDescripcion(entity.getDescripcion());
+        capacidad.setActiva(entity.getActiva());
 
 
         try {

@@ -34,11 +34,36 @@ public class CapacidadUseCase {
             String sortDirection
     ) {
         return capacidadRepository.listarCapacidades(page, size, sortBy, sortDirection)
+                .flatMap(pageCapacidades -> {
+                    var capacidadesActivas = pageCapacidades.getData().stream()
+                            .filter(capacidad -> Boolean.TRUE.equals(capacidad.getActiva()))
+                            .toList();
+                    
+                    var pageFiltrada = CustomPage.<Capacidad>builder()
+                            .data(capacidadesActivas)
+                            .totalRows(pageCapacidades.getTotalRows())
+                            .pageSize(pageCapacidades.getPageSize())
+                            .pageNum(pageCapacidades.getPageNum())
+                            .hasNext(pageCapacidades.getHasNext())
+                            .sort(pageCapacidades.getSort())
+                            .build();
+                    
+                    return Mono.just(pageFiltrada);
+                })
                 .flatMap(capacidadEnrichmentService::enriquecerCapacidadesConTecnologias);
     }
 
     public Flux<CapacidadConTecnologias> obtenerCapacidadesPorIds(List<Long> ids) {
         return capacidadRepository.obtenerCapacidadesPorIds(ids)
+                .filter(capacidad -> Boolean.TRUE.equals(capacidad.getActiva()))
                 .transform(capacidadEnrichmentService::enriquecerCapacidadesConTecnologias);
+    }
+
+    public Mono<Void> activarCapacidades(List<Long> ids) {
+        return capacidadRepository.activarCapacidades(ids);
+    }
+
+    public Mono<Void> desactivarCapacidades(List<Long> ids) {
+        return capacidadRepository.desactivarCapacidades(ids);
     }
 }

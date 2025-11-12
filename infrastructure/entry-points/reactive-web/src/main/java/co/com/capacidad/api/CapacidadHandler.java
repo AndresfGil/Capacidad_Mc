@@ -73,4 +73,22 @@ public class CapacidadHandler {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .bodyValue(responseList)));
     }
+
+    public Mono<ServerResponse> listenActivarCapacidades(ServerRequest req) {
+        return req.bodyToMono(CapacidadBatchRequestDto.class)
+                .flatMap(dto -> dtoValidator.validate(dto)
+                        .flatMap(dtoValidado -> capacidadUseCase.activarCapacidades(dtoValidado.ids()))
+                        .then(ServerResponse
+                                .status(HttpStatus.NO_CONTENT)
+                                .build()));
+    }
+
+    public Mono<ServerResponse> listenDesactivarCapacidades(ServerRequest req) {
+        return req.bodyToMono(CapacidadBatchRequestDto.class)
+                .flatMap(dto -> dtoValidator.validate(dto)
+                        .flatMap(dtoValidado -> capacidadUseCase.desactivarCapacidades(dtoValidado.ids()))
+                        .then(ServerResponse
+                                .status(HttpStatus.NO_CONTENT)
+                                .build()));
+    }
 }
